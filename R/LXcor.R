@@ -1,0 +1,178 @@
+
+LXcor <- function(gene_file,meta_file,group1,group2,row_n){
+
+#------------------------------------------------------------------------------
+  R_packs_install <- function(){
+
+    R_packs <- c("psych","pheatmap","ggplot2","openxlsx", "ggrepel","dplyr","magrittr","ggplotify")
+
+    list_installed <- installed.packages()
+
+    new_R_packs <- subset(R_packs, !(R_packs %in% list_installed[, "Package"]))
+
+    if(length(new_R_packs)!=0){install.packages(new_R_packs,force=TRUE,quietly = TRUE)
+      print(c(new_R_packs, " packages added..."))}
+
+    if((length(new_R_packs)<1)){print("No new dependency packages added...")}
+
+  }
+
+  R_packs_install()
+
+
+  #----------------------
+
+  Bio_packages <- function(){
+    Bio_pkgs <- c("WGCNA","GO.db")
+    list_installed <- installed.packages()
+    new_pkgs <- subset(Bio_pkgs, !(Bio_pkgs %in% list_installed[, "Package"]))
+    if(length(new_pkgs)!=0){if (!requireNamespace("BiocManager", quietly = TRUE))
+      install.packages("BiocManager")
+      library(BiocManager)
+      BiocManager::install(new_pkgs,force=TRUE,quietly = TRUE)
+      print(c(new_pkgs, " packages added..."))
+    }
+
+    if((length(new_pkgs)<1)){
+      print("No new BiocManager packages added...")
+    }
+  }
+
+
+  Bio_packages()
+
+
+  #--------------------
+
+  packages <- c("psych","pheatmap","ggplot2","openxlsx", "ggrepel","dplyr","magrittr","WGCNA","GO.db","ggplotify")
+
+  for(i in packages){
+    library(i, character.only = T)
+  }
+
+  rm(i)
+
+##------------------------------------------------------------------------------
+
+  group1 <- trimws(group1)
+  group2 <- trimws(group2)
+
+  group <- data.frame(group1,group2)
+
+ # if(dir.exists("temporary files")==FALSE)
+ #    dir.create("temporary files")
+
+ # write.xlsx(group,"temporary files/group.xlsx")
+
+  genes <- t(read.xlsx(gene_file,startRow = 1,rowName = TRUE))
+  gene_n <- ncol(genes)
+
+  meta <- t(read.xlsx(meta_file,startRow = 1,rowName = TRUE))
+  meta_n <- ncol(meta)
+
+r_value <- cor(genes,meta,method="spearman")
+
+r_p <- corAndPvalue(genes,meta,method="spearman")
+
+r_data <- r_p[["cor"]]
+p_data <- r_p[["p"]]
+
+# write.xlsx(data.frame(r_data),"temporary files/r_data.xlsx",rowNames=T)
+# write.xlsx(data.frame(p_data),"temporary files/p_data.xlsx",rowNames=T)
+
+
+titile_text <- paste('Heatmap graphics',"(",group1,"VS",group2,")")
+
+p1 <- pheatmap(r_data,main=titile_text,
+                    fontsize=10,scale ="row", drop_levels = TRUE,
+                    cluster_rows = TRUE,cluster_cols = TRUE,
+                    show_rownames =T,show_colnames = T,
+                    #cellwidth = 15,cellheight = 10,
+                    treeheight_col = 50,treeheight_row = 50,
+                    fontsize_row = 8, fontsize_col =8,
+                    #cutree_rows = 2, cutree_cols =2,
+                    border_color="#fff8dc",
+                    angle_col = 45,
+                    #display_numbers = p_data,fontsize_number=12,
+                    color=colorRampPalette(c("deepskyblue","white","red"))(100))
+
+
+if(dir.exists("analysis result")==FALSE)
+  dir.create("analysis result")
+#ggsave("analysis result/Heatmap graphics 01.png",heat_map,width=1200, height =1000, dpi=180,units = "px")
+
+p1_plot <- as.ggplot(p1)
+
+p1_heat <- p1_plot+ theme(plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"))
+
+p1_heat
+
+ggsave("analysis result/Heatmap graphics 01.png",p1_heat,width=1200, height =1000, dpi=180,units = "px")
+
+
+dev.off()
+
+#----------------------------------------------------------------------
+
+#corgm_1 <- function(){
+
+  #row_col_n <- data.frame(row_n,col_n)
+  #write.xlsx(row_col_n,"temporary files/row_col_n.xlsx")
+
+ # r_data_2 <- read.xlsx("temporary files/r_data.xlsx",rowNames=T)
+ # p_data <- read.xlsx("temporary files/p_data.xlsx",rowNames=T)
+
+ # group <- read.xlsx("temporary files/group.xlsx",colNames=TRUE)
+#  titile_text <- paste('Heatmap graphics',"(",group$group1,"VS",group$group2,")")
+
+  if (!is.null(p_data)){
+    sig_01 <- p_data< 0.01
+    p_data[sig_01] <-'**'
+    sig_05 <- p_data >0.01& p_data <0.05
+    p_data[sig_05] <- '*'
+    p_data[!sig_01&!sig_05]<- ''
+  } else {
+    p_data <- F
+  }
+
+
+  p2 <- pheatmap(r_data,main=titile_text,
+                      fontsize=10,scale ="row", drop_levels = TRUE,
+                      cluster_rows = TRUE,cluster_cols = TRUE,
+                      show_rownames =T,show_colnames = T,
+                      #cellwidth = 15,cellheight = 10,
+                      treeheight_col = 50,treeheight_row = 50,
+                      fontsize_row = 8, fontsize_col =8,
+                      cutree_rows = row_n, cutree_cols =1,
+                      border_color="#fff8dc",
+                      angle_col = 45,
+                      display_numbers = p_data,fontsize_number=12,
+                      color=colorRampPalette(c("deepskyblue","white","red"))(100))
+
+
+  p2_plot <- as.ggplot(p2)
+
+  p2_heat <- p2_plot+ theme(plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"))
+
+  p2_heat
+
+  ggsave("analysis result/Heatmap graphics 02.png",p2_heat,width=1200, height =1000, dpi=180,units = "px")
+
+
+  row_cluster <- cutree(p2$tree_row,k=row_n)
+  row_cluster
+
+  neworder <- p2$tree_row$order
+  neworder
+
+  neworder_df <- r_data[neworder,] %>% data.frame()
+
+  neworder_df$Cluster <- row_cluster[match(rownames(neworder_df),names(row_cluster))]
+
+  write.xlsx(neworder_df,"analysis result/Cluster_data.xlsx",rowNames=T,colNames=T)
+
+}
+
+
+
+
