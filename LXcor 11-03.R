@@ -83,34 +83,53 @@ p_data <- r_p[["p"]]
 
 titile_text <- paste('Heatmap graphics',"(",group1,"VS",group2,")")
 
+if(gene_n>30 | meta_n>30)
+    {y_name <- rep("",gene_n)
+     y_n = round(gene_n/2,0)
+     y_name[y_n] <- "Genes"
+     x_name <- rep("",meta_n)
+    x_n = round(meta_n/2,0)
+    x_name[x_n] <- "Metabolites"
 p1 <- pheatmap(r_data,main=titile_text,
                     fontsize=10,scale ="row", drop_levels = TRUE,
-                    cluster_rows = TRUE,cluster_cols = TRUE,
+                    cluster_rows =TRUE,cluster_cols =TRUE ,
                     show_rownames =T,show_colnames = T,
+                    labels_row = y_name, labels_col = x_name,
+                    fontsize_row = 10, fontsize_col =10,
+                    angle_col = "0",
                     #cellwidth = 15,cellheight = 10,
                     treeheight_col = 50,treeheight_row = 50,
-                    fontsize_row = 8, fontsize_col =8,
                     #cutree_rows = 2, cutree_cols =2,
                     border_color="#fff8dc",
-                    angle_col = 45,
                     #display_numbers = p_data,fontsize_number=12,
-                    color=colorRampPalette(c("deepskyblue","white","red"))(100))
-
+                    color=colorRampPalette(c("deepskyblue","white","red"))(100))} else
+   {p1 <- pheatmap(r_data,main=titile_text,
+                  fontsize=10,scale ="row", drop_levels = TRUE,
+                  cluster_rows =TRUE,cluster_cols =TRUE ,
+                  show_rownames =T,show_colnames = T,
+                  fontsize_row = 9, fontsize_col =9,
+                  angle_col = "45",
+                  #cellwidth = 15,cellheight = 10,
+                   treeheight_col = 50,treeheight_row = 50,
+                   #cutree_rows = 2, cutree_cols =2,
+                   border_color="#fff8dc",
+                    #display_numbers = p_data,fontsize_number=12,
+                   color=colorRampPalette(c("deepskyblue","white","red"))(100))}
 
 if(dir.exists("analysis result")==FALSE)
   dir.create("analysis result")
-#ggsave("analysis result/Heatmap graphics 01.png",heat_map,width=1200, height =1000, dpi=180,units = "px")
 
 p1_plot <- as.ggplot(p1)
 
-p1_heat <- p1_plot+ theme(plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"))
+p1_heat <- p1_plot+
+           theme(plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"))
 
 p1_heat
 
 ggsave("analysis result/Heatmap graphics 01.png",p1_heat,width=1200, height =1000, dpi=180,units = "px")
 
 
-dev.off()
+#dev.off()
 
 #----------------------------------------------------------------------
 
@@ -135,8 +154,27 @@ dev.off()
     p_data <- F
   }
 
-
-  p2 <- pheatmap(r_data,main=titile_text,
+if(gene_n>30 | meta_n>30)
+    {y_name <- rep("",gene_n)
+     y_n = round(gene_n/2,0)
+     y_name[y_n] <- "Genes"
+     x_name <- rep("",meta_n)
+     x_n = round(meta_n/2,0)
+     x_name[x_n] <- "Metabolites"
+     p2 <- pheatmap(r_data,main=titile_text,
+                    fontsize=10,scale ="row", drop_levels = TRUE,
+                    cluster_rows =TRUE,cluster_cols =TRUE ,
+                    show_rownames =T,show_colnames = T,
+                    labels_row = y_name, labels_col = x_name,
+                    fontsize_row = 10, fontsize_col =10,
+                    angle_col = "0",
+                    #cellwidth = 15,cellheight = 10,
+                    treeheight_col = 50,treeheight_row = 50,
+                    cutree_rows = row_n, cutree_cols =1,
+                    border_color="#fff8dc",
+                    #display_numbers = p_data,fontsize_number=12,
+                    color=colorRampPalette(c("deepskyblue","white","red"))(100))} else
+     {p2 <- pheatmap(r_data,main=titile_text,
                       fontsize=10,scale ="row", drop_levels = TRUE,
                       cluster_rows = TRUE,cluster_cols = TRUE,
                       show_rownames =T,show_colnames = T,
@@ -147,8 +185,7 @@ dev.off()
                       border_color="#fff8dc",
                       angle_col = 45,
                       display_numbers = p_data,fontsize_number=12,
-                      color=colorRampPalette(c("deepskyblue","white","red"))(100))
-
+                      color=colorRampPalette(c("deepskyblue","white","red"))(100))}
 
   p2_plot <- as.ggplot(p2)
 
@@ -158,12 +195,10 @@ dev.off()
 
   ggsave("analysis result/Heatmap graphics 02.png",p2_heat,width=1200, height =1000, dpi=180,units = "px")
 
-
   row_cluster <- cutree(p2$tree_row,k=row_n)
   row_cluster
 
   neworder <- p2$tree_row$order
-  neworder
 
   neworder_df <- r_data[neworder,] %>% data.frame()
 
