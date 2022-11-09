@@ -4,7 +4,7 @@ LXcor <- function(gene_file,meta_file,group1,group2,row_n){
 #------------------------------------------------------------------------------
   R_packs_install <- function(){
 
-    R_packs <- c("psych","pheatmap","ggplot2","openxlsx", "ggrepel","dplyr","magrittr","ggplotify")
+    R_packs <- c("psych","pheatmap","ggplot2","openxlsx", "ggrepel","dplyr","magrittr","ggplotify","conflicted")
 
     list_installed <- installed.packages()
 
@@ -44,13 +44,43 @@ LXcor <- function(gene_file,meta_file,group1,group2,row_n){
 
   #--------------------
 
-  packages <- c("psych","pheatmap","ggplot2","openxlsx", "ggrepel","dplyr","magrittr","WGCNA","GO.db","ggplotify")
+  packages <- c("psych","pheatmap","ggplot2","openxlsx", "ggrepel","dplyr","magrittr","WGCNA","GO.db","ggplotify","conflicted")
 
   for(i in packages){
     library(i, character.only = T)
   }
 
   rm(i)
+
+
+  conflict_scout()
+
+
+  conflict_prefer("%+%", "psych")
+  conflict_prefer("distance", "psych")
+
+  conflict_prefer("filter", "dplyr")
+  conflict_prefer("lag", "dplyr")
+  conflict_prefer("arrange", "dplyr")
+  conflict_prefer("select", "dplyr")
+  conflict_prefer("summarise", "dplyr")
+  conflict_prefer("summarize", "dplyr")
+  conflict_prefer("rename", "dplyr")
+  conflict_prefer("mutate", "dplyr")
+  conflict_prefer("count", "dplyr")
+  conflict_prefer("failwith", "dplyr")
+  conflict_prefer("id", "dplyr")
+  conflict_prefer("combine", "dplyr")
+  conflict_prefer("desc", "dplyr")
+  conflict_prefer("collapse", "dplyr")
+  conflict_prefer("slice", "dplyr")
+
+  conflict_prefer("Position", "ggplot2")
+
+  conflict_prefer("blockSize", "WGCNA")
+  conflict_prefer("cor", "WGCNA")
+
+
 
 ##------------------------------------------------------------------------------
 
@@ -194,6 +224,9 @@ if(gene_n>30 | meta_n>30)
   p2_heat
 
   ggsave("analysis result/Heatmap graphics 02.png",p2_heat,width=1200, height =1000, dpi=180,units = "px")
+
+  print("---------------------------------------------------------------------")
+  print("The analysis results can be found in the folder of <analysis result>")
 
   row_cluster <- cutree(p2$tree_row,k=row_n)
   row_cluster
