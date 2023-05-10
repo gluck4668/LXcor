@@ -1,0 +1,12 @@
+Package: LXcor
+Type: Package
+Title: LXcor
+Version: 2023.01
+Author: Dr.Lin
+Maintainer: Dr.Lin <gluck4668@sina.com>
+Description: LXcor can be used for the correlation analysis of transctiptome and metabolome
+License: What license is it under?
+Encoding: UTF-8
+LazyData: true
+Depends: 
+    R (>= 2.10)
